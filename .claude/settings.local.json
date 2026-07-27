@@ -3,7 +3,13 @@
     "allow": [
       "Bash(where.exe python *)",
       "Bash(where.exe chromium-cli *)",
-      "Bash(python -m playwright install chromium)"
+      "Bash(python -m playwright install chromium)",
+      "Bash(git fetch *)",
+      "WebSearch",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(gh api *)",
+      "Bash(curl -sL https://api.github.com/repos/una/CSSgram/git/trees/master?recursive=1)",
+      "Bash(curl -sL \"https://api.github.com/repos/una/CSSgram/git/trees/master?recursive=1\")"
     ]
   }
 }
