@@ -1,0 +1,229 @@
+/* =========================================================
+   Vintage Cam - 인스타그램/VSCO 스타일 다크 모바일 UI
+   ========================================================= */
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  background: #000;
+  color: #f2f2f2;
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+               "Pretendard", "Malgun Gothic", "Segoe UI", Roboto, sans-serif;
+}
+
+/* 앱 전체 컨테이너: 모바일 우선, 데스크톱에서는 가운데 정렬된 폰 화면처럼 보이게 */
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: #0b0b0d;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ---------------- 상단 헤더 ---------------- */
+.topbar {
+  padding: 14px 18px;
+  border-bottom: 1px solid #1c1c1e;
+  flex-shrink: 0;
+}
+
+.logo {
+  font-weight: 700;
+  font-size: 17px;
+  background: linear-gradient(90deg, #ff9a56, #ff6a8b, #a56bff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---------------- 캔버스 편집 영역 ---------------- */
+.editor {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.canvas-wrap {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  overflow: hidden;
+}
+
+#mainCanvas {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  border-radius: 2px;
+}
+
+/* 이미지 업로드 전 안내 화면 */
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 24px;
+  text-align: center;
+  color: #9a9aa2;
+}
+
+.placeholder-icon {
+  font-size: 48px;
+  opacity: 0.8;
+}
+
+.placeholder p {
+  margin: 0;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+/* AI 분석 중 로딩 오버레이 */
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 5;
+}
+
+.loading-overlay p {
+  font-size: 13px;
+  color: #ddd;
+  margin: 0;
+}
+
+.spinner {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.15);
+  border-top-color: #fff;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---------------- 하단 컨트롤 바 ---------------- */
+.controls {
+  flex-shrink: 0;
+  background: #0d0d0f;
+  border-top: 1px solid #1c1c1e;
+  padding: 12px 0 calc(12px + env(safe-area-inset-bottom));
+}
+
+/* 필터 선택 가로 스크롤 영역 */
+.filter-row {
+  display: flex;
+  gap: 8px;
+  padding: 0 14px 12px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.filter-row::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-btn {
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1px solid #2a2a2e;
+  background: #17171a;
+  color: #bdbdc4;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filter-btn:active {
+  transform: scale(0.96);
+}
+
+.filter-btn.active {
+  border-color: #fff;
+  color: #fff;
+  background: #26262b;
+}
+
+.filter-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.filter-btn.analyzing {
+  color: #ffb27a;
+  border-color: #5a3d24;
+}
+
+/* 하단 액션 버튼(다른 사진 선택 / 저장) */
+.action-row {
+  display: flex;
+  gap: 10px;
+  padding: 0 14px;
+}
+
+.primary-btn {
+  flex: 1;
+  padding: 13px 18px;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(90deg, #ff9a56, #ff6a8b, #a56bff);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.primary-btn:active {
+  transform: scale(0.97);
+}
+
+.primary-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ghost-btn {
+  flex-shrink: 0;
+  padding: 13px 18px;
+  border-radius: 999px;
+  border: 1px solid #333;
+  background: transparent;
+  color: #ddd;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.ghost-btn:active {
+  transform: scale(0.97);
+}

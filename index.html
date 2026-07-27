@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Vintage Cam · 감성 필터 카메라</title>
+<meta name="description" content="AI 인물 분리 플래시 효과와 빈티지 필름 필터를 제공하는 클라이언트 전용 사진 편집 웹앱">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+
+    <!-- 상단 헤더 -->
+    <header class="topbar">
+      <span class="logo">✨ Vintage Cam</span>
+    </header>
+
+    <!-- 캔버스 편집 영역 -->
+    <main class="editor">
+      <div class="canvas-wrap" id="canvasWrap">
+
+        <!-- 실제 이미지 처리가 일어나는 캔버스 -->
+        <canvas id="mainCanvas"></canvas>
+
+        <!-- 이미지 업로드 전 안내 화면 -->
+        <div class="placeholder" id="placeholder">
+          <div class="placeholder-icon">📷</div>
+          <p>사진을 선택하고<br>감성 필터를 적용해보세요</p>
+          <button id="uploadBtn" class="primary-btn" type="button">사진 선택하기</button>
+        </div>
+
+        <!-- MediaPipe AI 분석 중 로딩 오버레이 -->
+        <div class="loading-overlay" id="loadingOverlay" hidden>
+          <div class="spinner"></div>
+          <p>AI가 인물과 배경을 분석하고 있어요...</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- 하단 필터 / 액션 바 -->
+    <footer class="controls" id="controls" hidden>
+      <div class="filter-row" id="filterRow">
+        <button class="filter-btn active" data-filter="original" type="button">원본</button>
+        <button class="filter-btn" data-filter="flash" id="flashBtn" type="button" disabled>⚡ 플래시</button>
+        <button class="filter-btn" data-filter="filmGold" type="button">🎞️ 필름골드</button>
+        <button class="filter-btn" data-filter="tealOrange" type="button">🌇 틸앤오렌지</button>
+        <button class="filter-btn" data-filter="retroFade" type="button">📻 레트로페이드</button>
+      </div>
+      <div class="action-row">
+        <button id="changeImageBtn" class="ghost-btn" type="button">다른 사진</button>
+        <button id="downloadBtn" class="primary-btn" type="button" disabled>⬇ 저장하기</button>
+      </div>
+    </footer>
+
+    <!-- 실제 파일 선택은 숨겨진 input이 담당 -->
+    <input type="file" id="fileInput" accept="image/*" hidden>
+  </div>
+
+  <!--
+    Google MediaPipe Selfie Segmentation (CDN, 빌드 과정 불필요)
+    - 브라우저에서 WebAssembly + WebGL로 동작하는 온디바이스 AI 모델
+    - 사람(피사체)과 배경을 픽셀 단위로 분리해주는 마스크(mask)를 생성한다
+  -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js" crossorigin="anonymous"></script>
+  <script src="script.js"></script>
+</body>
+</html>
