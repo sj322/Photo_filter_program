@@ -115,8 +115,10 @@ function loadImageFile(file) {
   reader.onload = (e) => {
     const img = new Image();
     img.onload = () => onImageReady(img);
+    img.onerror = () => alert('이미지를 불러올 수 없습니다. 다른 파일을 선택해주세요.');
     img.src = e.target.result;
   };
+  reader.onerror = () => alert('파일을 읽는 중 오류가 발생했습니다.');
   reader.readAsDataURL(file);
 }
 
@@ -139,6 +141,7 @@ async function onImageReady(img) {
 
   // UI 전환: 업로드 화면 숨기고 캔버스/컨트롤 노출
   placeholder.hidden = true;
+  mainCanvas.hidden = false;
   controls.hidden = false;
   downloadBtn.disabled = false;
   setActiveFilterButton('original');
@@ -148,6 +151,10 @@ async function onImageReady(img) {
   flashBtn.classList.add('analyzing');
   flashBtn.textContent = '⚡ 분석 중...';
   loadingOverlay.hidden = false;
+
+  // 분석 도중 다른 사진을 또 선택하면 이전 분석 요청과 뒤섞여
+  // 엉뚱한 마스크가 매칭될 수 있으므로, 분석이 끝날 때까지 재선택을 막는다.
+  changeImageBtn.disabled = true;
 
   try {
     // 캔버스에 이미 그려둔(=축소 완료된) 이미지를 그대로 AI 입력으로 사용한다.
@@ -163,6 +170,7 @@ async function onImageReady(img) {
     flashBtn.classList.remove('analyzing');
   } finally {
     loadingOverlay.hidden = true;
+    changeImageBtn.disabled = false;
   }
 }
 

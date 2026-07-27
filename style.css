@@ -7,6 +7,15 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/*
+ * hidden 속성을 쓰는 요소들(.loading-overlay, .placeholder 등)이 별도로
+ * display 값을 지정하고 있으면, 브라우저 기본 스타일([hidden]{display:none})보다
+ * 그 규칙이 우선 적용돼서 hidden 속성이 무시된다. 항상 최우선으로 숨겨지도록 고정.
+ */
+[hidden] {
+  display: none !important;
+}
+
 html, body {
   height: 100%;
   margin: 0;
@@ -226,4 +235,9 @@ html, body {
 
 .ghost-btn:active {
   transform: scale(0.97);
+}
+
+.ghost-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }

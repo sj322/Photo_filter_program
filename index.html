@@ -19,8 +19,9 @@
     <main class="editor">
       <div class="canvas-wrap" id="canvasWrap">
 
-        <!-- 실제 이미지 처리가 일어나는 캔버스 -->
-        <canvas id="mainCanvas"></canvas>
+        <!-- 실제 이미지 처리가 일어나는 캔버스. 이미지 업로드 전에는 숨겨서
+             기본 캔버스 크기(300x150)가 안내 문구 레이아웃을 밀어내지 않게 한다 -->
+        <canvas id="mainCanvas" hidden></canvas>
 
         <!-- 이미지 업로드 전 안내 화면 -->
         <div class="placeholder" id="placeholder">

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(where.exe python *)",
+      "Bash(where.exe chromium-cli *)",
+      "Bash(python -m playwright install chromium)"
+    ]
+  }
+}
