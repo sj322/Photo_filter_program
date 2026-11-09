@@ -1,85 +1,204 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Vintage Cam · 감성 필터 카메라</title>
-<meta name="description" content="90년대 가족앨범, 바랜 인화사진, 필름과 레트로 디카까지. 32가지 색감과 아날로그 질감을 기기 안에서 만나보세요.">
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#181b18">
+  <meta name="description" content="오늘의 사진에 오래 남을 색감. 44가지 필름·디카 룩, 섬세한 보정과 나만의 레시피를 담은 Vintage Studio. 모든 편집은 기기 안에서 이루어집니다.">
+  <title>Vintage Studio — 오늘의 순간, 오래 남을 색감</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23e4ed9d'/%3E%3Cpath d='M16 18l16 30 16-30M23 18l9 17 9-17' fill='none' stroke='%23181b18' stroke-width='5'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="app">
+  <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M7 17 17 7M7 7h10v10"/></symbol>
+    <symbol id="icon-download" viewBox="0 0 24 24"><path d="M12 3v12m-4-4 4 4 4-4M5 16v4h14v-4"/></symbol>
+    <symbol id="icon-undo" viewBox="0 0 24 24"><path d="m8 5-4 4 4 4M4 9h9a6 6 0 0 1 0 12"/></symbol>
+    <symbol id="icon-redo" viewBox="0 0 24 24"><path d="m16 5 4 4-4 4m4-4h-9a6 6 0 0 0 0 12"/></symbol>
+    <symbol id="icon-compare" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M12 3v18"/></symbol>
+    <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol>
+    <symbol id="icon-heart" viewBox="0 0 24 24"><path d="m12 20-8-8a5 5 0 0 1 8-6 5 5 0 0 1 8 6Z"/></symbol>
+    <symbol id="icon-tune" viewBox="0 0 24 24"><path d="M4 7h6m4 0h6M4 17h10m4 0h2"/><circle cx="12" cy="7" r="2"/><circle cx="16" cy="17" r="2"/></symbol>
+    <symbol id="icon-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></symbol>
+    <symbol id="icon-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+    <symbol id="icon-rotate" viewBox="0 0 24 24"><path d="M3 9a9 9 0 1 1 2 9M3 3v6h6"/><path d="M9 9h7v7H9z"/></symbol>
+    <symbol id="icon-trash" viewBox="0 0 24 24"><path d="M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7m4-7v7"/></symbol>
+    <symbol id="icon-lock" viewBox="0 0 24 24"><rect x="6" y="10" width="12" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></symbol>
+    <symbol id="icon-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.5"/><path d="m3 17 6-6 4 4 3-3 5 5"/></symbol>
+  </svg>
 
-    <!-- 상단 헤더 -->
+  <div class="app" id="app">
     <header class="topbar">
-      <span class="logo">✨ Vintage Cam</span>
-      <span class="header-note">a little nostalgia.</span>
+      <div class="brand" aria-label="Vintage Studio">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M6 7 16 26 26 7M11 7l5 9 5-9"/></svg></span>
+        <span class="brand-wordmark">Vintage<span>studio</span><i aria-hidden="true">02</i></span>
+      </div>
+      <span class="header-note">YOUR MOMENTS, WITH FEELING.</span>
+      <div class="header-actions">
+        <button class="button button-quiet" id="uploadBtn" type="button" aria-label="사진 열기">
+          <svg class="icon" aria-hidden="true"><use href="#icon-plus"/></svg><span>사진 열기</span>
+        </button>
+        <button class="button button-accent" id="exportBtn" type="button" disabled>
+          <span>내보내기</span><svg class="icon" aria-hidden="true"><use href="#icon-arrow"/></svg>
+        </button>
+      </div>
     </header>
-    <p id="statusMessage" class="status-message" role="status" aria-live="polite" hidden></p>
 
-    <!-- 캔버스 편집 영역 -->
-    <main class="editor">
-      <div class="canvas-wrap" id="canvasWrap">
-
-        <!-- 실제 이미지 처리가 일어나는 캔버스. 이미지 업로드 전에는 숨겨서
-             기본 캔버스 크기(300x150)가 안내 문구 레이아웃을 밀어내지 않게 한다 -->
-        <canvas id="mainCanvas" aria-label="선택한 사진 미리보기" hidden></canvas>
-        <span class="image-info" id="imageInfo" hidden></span>
-
-        <!-- 이미지 업로드 전 안내 화면 -->
-        <div class="placeholder" id="placeholder">
-          <div class="placeholder-icon">📷</div>
-          <span class="eyebrow">90s · VINTAGE · FILM</span>
-          <h1>오늘의 사진에<br>조금의 옛날을.</h1>
-          <p>90년대 가족앨범부터 바랜 필름까지.<br><span id="lookCount">32</span>가지 색감으로 오래된 순간을 만들어보세요.</p>
-          <button id="uploadBtn" class="primary-btn" type="button">사진 선택하기</button>
-          <span class="privacy-note">사진은 기기 안에서만 처리돼요</span>
+    <main>
+      <section class="studio-intro" aria-label="사진 편집 스튜디오">
+        <div>
+          <p class="eyebrow">A LITTLE NOSTALGIA, A LOT OF YOU.</p>
+          <h1>오늘의 순간, <span>오래 남을 색감.</span></h1>
         </div>
+        <p class="intro-note">필름의 온기부터 오래된 디카의 분위기까지.<br>당신의 사진에 어울리는 시간을 찾아보세요.</p>
+      </section>
+
+      <p class="status-message" id="statusMessage" role="status" aria-live="polite" hidden></p>
+
+      <div class="workspace" id="workspace">
+        <section class="photo-workspace" aria-label="사진 미리보기">
+          <div class="photo-toolbar">
+            <div class="photo-file">
+              <span class="file-icon" aria-hidden="true"><svg class="icon"><use href="#icon-image"/></svg></span>
+              <div class="file-details"><h2 id="photoTitle">사진을 열어주세요</h2><span id="imageMeta">JPG · PNG · WebP</span></div>
+            </div>
+            <div class="photo-actions">
+              <div class="history-buttons" role="group" aria-label="편집 기록">
+                <button class="icon-button" id="undoBtn" type="button" aria-label="실행 취소" title="실행 취소 (Ctrl+Z)" disabled><svg class="icon" aria-hidden="true"><use href="#icon-undo"/></svg></button>
+                <button class="icon-button" id="redoBtn" type="button" aria-label="다시 실행" title="다시 실행 (Ctrl+Shift+Z)" disabled><svg class="icon" aria-hidden="true"><use href="#icon-redo"/></svg></button>
+              </div>
+              <button class="compare-button" id="compareBtn" type="button" aria-pressed="false" disabled><svg class="icon" aria-hidden="true"><use href="#icon-compare"/></svg><span>전후 비교</span></button>
+            </div>
+          </div>
+
+          <div class="editor" id="editor">
+            <div class="canvas-wrap" id="canvasWrap">
+              <canvas id="mainCanvas" aria-label="보정한 사진 미리보기" hidden></canvas>
+              <div id="comparisonLayer" class="comparison-layer" hidden>
+                <canvas id="originalCanvas" aria-label="보정 전 사진 미리보기"></canvas>
+                <span class="comparison-label">원본</span>
+              </div>
+              <div id="comparisonDivider" class="comparison-divider" aria-hidden="true" hidden><span>↔</span></div>
+
+              <div class="placeholder" id="placeholder">
+                <div class="placeholder-art" aria-hidden="true">
+                  <span class="photo-outline back"></span>
+                  <span class="photo-outline front"><svg viewBox="0 0 48 48"><circle cx="33" cy="15" r="5"/><path d="m5 34 12-14 11 14 7-9 8 9"/></svg></span>
+                </div>
+                <p class="eyebrow">MAKE A LITTLE MEMORY</p>
+                <h2>그냥 지나치기엔<br>좋았던 순간.</h2>
+                <p class="placeholder-copy">사진 한 장으로 시작해보세요.<br>좋아하는 색감은 우리가 준비해둘게요.</p>
+                <div class="placeholder-actions">
+                  <button class="button button-accent" id="pickPhotoBtn" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-plus"/></svg>사진 선택하기</button>
+                  <button class="text-button" id="demoBtn" type="button">샘플로 둘러보기 <span aria-hidden="true">↗</span></button>
+                </div>
+                <p class="drop-hint">사진을 여기에 놓거나 붙여넣어도 좋아요</p>
+              </div>
+              <div id="renderIndicator" class="render-indicator" role="status" hidden><span class="loading-dot" aria-hidden="true"></span>색감을 입히는 중</div>
+              <div id="dropOverlay" class="drop-overlay" hidden><svg class="icon" aria-hidden="true"><use href="#icon-plus"/></svg><strong>사진을 놓아주세요</strong><span>새로운 순간을 편집해볼까요?</span></div>
+            </div>
+          </div>
+
+          <div class="compare-control" id="compareControl" hidden>
+            <label for="comparePosition">원본</label>
+            <input id="comparePosition" type="range" min="0" max="100" value="50" aria-label="전후 비교 위치">
+            <span>보정 후</span>
+          </div>
+          <footer class="photo-caption" id="photoCaption">
+            <div class="look-caption"><span class="live-dot" aria-hidden="true"></span><span id="currentLook">당신만의 색감을 기다리는 중</span></div>
+            <span class="local-status" id="localStatus"><svg class="icon" aria-hidden="true"><use href="#icon-lock"/></svg>기기 안에서만 편집</span>
+          </footer>
+        </section>
+
+        <aside class="side-panel" id="sidePanel" aria-label="사진 편집 도구">
+          <div class="tool-tabs" role="tablist" aria-label="편집 도구">
+            <button id="filterTab" type="button" role="tab" aria-selected="true" aria-controls="filtersPanel"><svg class="icon" aria-hidden="true"><use href="#icon-grid"/></svg>필터</button>
+            <button id="adjustTab" type="button" role="tab" aria-selected="false" aria-controls="adjustPanel" tabindex="-1"><svg class="icon" aria-hidden="true"><use href="#icon-tune"/></svg>세부 조정</button>
+          </div>
+
+          <section class="filters-panel" id="filtersPanel" role="tabpanel" aria-labelledby="filterTab">
+            <div class="panel-heading"><div><p class="eyebrow">FIND YOUR MOOD</p><h2>나의 다음 색감</h2></div><span class="count-badge" id="filterCount">44 looks</span></div>
+            <label class="search-field" for="filterSearch"><svg class="icon" aria-hidden="true"><use href="#icon-search"/></svg><input id="filterSearch" type="search" placeholder="필터 이름이나 분위기 검색" autocomplete="off" aria-label="필터 찾기"></label>
+            <div class="category-row" id="categoryRow" role="group" aria-label="필터 컬렉션"></div>
+            <div class="filter-row" id="filterRow" role="group" aria-label="사진 필터"></div>
+            <div class="empty-filters" id="emptyFilters" hidden><svg class="icon" aria-hidden="true"><use href="#icon-search"/></svg><p>아직 찾는 색감이 없네요.</p><span>다른 검색어나 컬렉션을 골라보세요.</span></div>
+          </section>
+
+          <section class="adjust-panel" id="adjustPanel" role="tabpanel" aria-labelledby="adjustTab" hidden>
+            <div class="panel-heading"><div><p class="eyebrow">MAKE IT YOURS</p><h2>조금 더, 내 취향으로</h2></div><button class="text-button small" id="resetBtn" type="button">초기화</button></div>
+            <div class="adjustment-group">
+              <div class="adjustment"><div><label for="exposureInput">노출</label><output id="exposureValue" for="exposureInput">0</output></div><input id="exposureInput" data-adjust="exposure" type="range" min="-100" max="100" value="0"></div>
+              <div class="adjustment"><div><label for="contrastInput">대비</label><output id="contrastValue" for="contrastInput">0</output></div><input id="contrastInput" data-adjust="contrast" type="range" min="-100" max="100" value="0"></div>
+              <div class="adjustment"><div><label for="highlightsInput">하이라이트</label><output id="highlightsValue" for="highlightsInput">0</output></div><input id="highlightsInput" data-adjust="highlights" type="range" min="-100" max="100" value="0"></div>
+              <div class="adjustment"><div><label for="shadowsInput">그림자</label><output id="shadowsValue" for="shadowsInput">0</output></div><input id="shadowsInput" data-adjust="shadows" type="range" min="-100" max="100" value="0"></div>
+              <div class="adjustment"><div><label for="temperatureInput">색온도 <span>차갑게 ↔ 따뜻하게</span></label><output id="temperatureValue" for="temperatureInput">0</output></div><input id="temperatureInput" data-adjust="temperature" type="range" min="-100" max="100" value="0"></div>
+              <div class="adjustment"><div><label for="saturationInput">채도</label><output id="saturationValue" for="saturationInput">0</output></div><input id="saturationInput" data-adjust="saturation" type="range" min="-100" max="100" value="0"></div>
+            </div>
+            <div class="adjustment-group">
+              <p class="group-label">FILM FINISH</p>
+              <div class="adjustment"><div><label for="skinProtectInput">피부색 보호</label><output id="skinProtectValue" for="skinProtectInput">60%</output></div><input id="skinProtectInput" data-adjust="skinProtect" type="range" min="0" max="100" value="60" aria-describedby="skinProtectHint"></div>
+              <p class="control-hint adjustment-hint" id="skinProtectHint">따뜻한 피부색 계열의 색 변형을 줄여요. 비슷한 색의 사물에도 적용돼요.</p>
+              <div class="adjustment"><div><label for="textureInput">필터 질감</label><output id="textureValue" for="textureInput">100%</output></div><input id="textureInput" data-adjust="texture" type="range" min="0" max="150" value="100" aria-describedby="filmFinishHint"></div>
+              <div class="adjustment"><div><label for="bloomInput">빛 번짐</label><output id="bloomValue" for="bloomInput">100%</output></div><input id="bloomInput" data-adjust="bloom" type="range" min="0" max="150" value="100" aria-describedby="filmFinishHint"></div>
+              <div class="adjustment"><div><label for="halationInput">붉은 잔광</label><output id="halationValue" for="halationInput">100%</output></div><input id="halationInput" data-adjust="halation" type="range" min="0" max="150" value="100" aria-describedby="filmFinishHint"></div>
+              <p class="control-hint adjustment-hint" id="filmFinishHint">100%가 필터의 기본 표현이에요. 0%로 줄이면 해당 질감이나 번짐을 끌 수 있어요.</p>
+            </div>
+            <div class="adjustment-group">
+              <p class="group-label">FINISHING TOUCHES</p>
+              <div class="adjustment"><div><label for="fadeInput">페이드</label><output id="fadeValue" for="fadeInput">0</output></div><input id="fadeInput" data-adjust="fade" type="range" min="0" max="100" value="0"></div>
+              <div class="adjustment"><div><label for="grainInput">추가 입자</label><output id="grainValue" for="grainInput">0</output></div><input id="grainInput" data-adjust="grain" type="range" min="0" max="100" value="0"></div>
+              <div class="adjustment"><div><label for="vignetteInput">비네팅</label><output id="vignetteValue" for="vignetteInput">0</output></div><input id="vignetteInput" data-adjust="vignette" type="range" min="0" max="100" value="0"></div>
+            </div>
+            <div class="geometry-group">
+              <label for="aspectInput">사진 비율</label>
+              <div class="geometry-controls"><select id="aspectInput"><option value="original">원본 비율</option><option value="1:1">1:1 · 정사각형</option><option value="4:5">4:5 · 인물</option><option value="3:2">3:2 · 가로</option><option value="9:16">9:16 · 스토리</option></select><button class="button button-quiet" id="rotateBtn" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-rotate"/></svg>90° 회전</button></div>
+              <p class="control-hint">비율을 고르면 사진의 중앙을 기준으로 잘라요.</p>
+            </div>
+          </section>
+
+          <section class="strength-section" id="strengthSection" aria-label="필터 강도">
+            <div class="strength-heading"><label for="strengthInput">필터 강도</label><div><output id="strengthValue" for="strengthInput">80%</output><button class="icon-button favorite-button" id="favoriteBtn" type="button" aria-label="현재 필터 즐겨찾기" aria-pressed="false" title="현재 필터 즐겨찾기" disabled><svg class="icon" aria-hidden="true"><use href="#icon-heart"/></svg></button></div></div>
+            <input id="strengthInput" type="range" min="0" max="100" value="80">
+          </section>
+
+          <section class="recipe-section" id="recipeSection" aria-label="나만의 레시피">
+            <div class="recipe-heading"><label for="recipeSelect">나만의 레시피</label><button class="text-button small" id="saveRecipeBtn" type="button"><span aria-hidden="true">＋</span> 현재 보정 저장</button></div>
+            <div class="recipe-controls"><select id="recipeSelect" aria-label="저장한 레시피"><option value="">저장한 레시피 선택</option></select><button class="icon-button" id="deleteRecipeBtn" type="button" aria-label="선택한 레시피 삭제" title="선택한 레시피 삭제" disabled><svg class="icon" aria-hidden="true"><use href="#icon-trash"/></svg></button></div>
+          </section>
+        </aside>
       </div>
+
+      <footer class="studio-footer"><span>Made for the moments in between.</span><span>44 PHOTO LOOKS <i aria-hidden="true">/</i> YOUR OWN PERSPECTIVE</span></footer>
     </main>
-
-    <!-- 하단 필터 / 액션 바 -->
-    <footer class="controls" id="controls" hidden>
-      <div class="filter-heading">
-        <div class="filter-title-group">
-          <span class="eyebrow">SELECT YOUR MOOD</span>
-          <h2 id="filterName">원본</h2>
-        </div>
-        <span id="filterCount">32 LOOKS</span>
-      </div>
-      <p id="filterDescription" class="filter-description" aria-live="polite">사진 본연의 색감</p>
-      <div class="category-row" id="categoryRow" role="group" aria-label="필터 종류">
-        <button class="category-btn active" data-category="all" aria-pressed="true" type="button">전체</button>
-        <button class="category-btn" data-category="nineties" aria-pressed="false" type="button">90년대</button>
-        <button class="category-btn" data-category="vintage" aria-pressed="false" type="button">빈티지</button>
-        <button class="category-btn" data-category="retro" aria-pressed="false" type="button">레트로</button>
-        <button class="category-btn" data-category="film" aria-pressed="false" type="button">필름</button>
-        <button class="category-btn" data-category="digital" aria-pressed="false" type="button">디카</button>
-        <button class="category-btn" data-category="cinema" aria-pressed="false" type="button">시네마</button>
-        <button class="category-btn" data-category="mono" aria-pressed="false" type="button">흑백</button>
-        <button class="category-btn" data-category="classic" aria-pressed="false" type="button">기존 필터</button>
-      </div>
-      <div class="filter-row" id="filterRow" role="group" aria-label="사진 필터"></div>
-      <div class="adjustments">
-        <div class="strength-control">
-          <label for="strengthInput">필터 강도</label>
-          <output id="strengthValue" for="strengthInput">80%</output>
-        </div>
-        <input id="strengthInput" type="range" min="0" max="100" step="1" value="80" disabled>
-        <button id="compareBtn" class="compare-btn" type="button" aria-pressed="false" disabled>원본 비교</button>
-      </div>
-      <div class="action-row">
-        <button id="changeImageBtn" class="ghost-btn" type="button">다른 사진</button>
-        <button id="downloadBtn" class="primary-btn" type="button" disabled>⬇ 저장하기</button>
-      </div>
-    </footer>
-
-    <!-- 실제 파일 선택은 숨겨진 input이 담당 -->
-    <input type="file" id="fileInput" accept="image/*" hidden>
-    <noscript>사진 필터를 사용하려면 브라우저에서 JavaScript를 켜주세요.</noscript>
+    <input id="fileInput" type="file" accept="image/*" hidden>
+    <noscript><p class="status-message error">사진을 편집하려면 브라우저에서 JavaScript를 켜주세요.</p></noscript>
   </div>
 
+  <dialog class="studio-dialog" id="exportDialog" aria-labelledby="exportTitle">
+    <form method="dialog">
+      <div class="dialog-header"><div><p class="eyebrow">READY TO KEEP</p><h2 id="exportTitle">이 순간을 저장해요.</h2></div><button id="closeExportBtn" class="icon-button" type="button" aria-label="내보내기 닫기"><svg class="icon" aria-hidden="true"><use href="#icon-close"/></svg></button></div>
+      <p class="dialog-copy">지금 고른 색감 그대로, 사진을 간직하세요.</p>
+      <div class="form-field"><label for="exportSize">사진 크기</label><select id="exportSize"><option value="1440">1440px · 가볍게</option><option value="2560" selected>2560px · 선명하게</option><option value="4096">최대 4096px · 크게</option></select><p class="control-hint">원본보다 크게 확대하지 않아요.</p></div>
+      <div class="form-field"><label for="exportFormat">파일 형식</label><select id="exportFormat"><option value="image/jpeg">JPG · 사진 공유에 좋아요</option><option value="image/png">PNG · 투명도 유지</option></select></div>
+      <div class="form-field" id="qualityRow"><div class="range-label"><label for="exportQuality">JPEG 품질</label><output id="qualityValue" for="exportQuality">95%</output></div><input id="exportQuality" type="range" min="70" max="100" value="95"></div>
+      <p id="exportSummary" class="export-summary">사진을 선택하면 저장 크기를 알려드려요.</p>
+      <div class="dialog-actions"><button class="button button-quiet" id="cancelExportBtn" type="button">취소</button><button class="button button-accent" id="confirmExportBtn" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-download"/></svg>사진 저장하기</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="studio-dialog recipe-dialog" id="recipeDialog" aria-labelledby="recipeTitle">
+    <form method="dialog">
+      <div class="dialog-header"><div><p class="eyebrow">YOUR SIGNATURE LOOK</p><h2 id="recipeTitle">나만의 레시피</h2></div></div>
+      <p class="dialog-copy">필터와 세부 보정을 함께 기억해둘게요.<br>다음 사진에도 좋아하는 색감을 이어가세요.</p>
+      <div class="form-field"><label for="recipeName">레시피 이름</label><input id="recipeName" type="text" maxlength="30" placeholder="예: 늦여름의 온도" autocomplete="off"></div>
+      <div class="dialog-actions"><button class="button button-quiet" id="cancelRecipeBtn" type="button">취소</button><button class="button button-accent" id="confirmRecipeBtn" type="button">레시피 저장</button></div>
+    </form>
+  </dialog>
+
+  <script src="assets/demo-image.js"></script>
   <script src="filters.js"></script>
+  <script src="editor-core.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

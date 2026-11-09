@@ -1,7 +1,7 @@
 'use strict';
 
 /*
- * Vintage Cam filter catalogue and renderer.
+ * Vintage Studio filter catalogue and renderer.
  * These are original looks inspired by film and early digital photographs,
  * not calibrated reproductions of a particular film stock or camera.
  * Pixel processing also works in browsers without CanvasRenderingContext2D.filter.
@@ -10,6 +10,18 @@
   const math = Math; // Cache the math intrinsics for tight pixel loops.
   const presets = Object.freeze([
     { id: 'original', name: '원본', category: 'all', description: '사진 본연의 색감 그대로', badge: 'ORIGINAL' },
+    { id: 'ccd2004', name: '2004 포켓 디카', category: 'digital', categories: Object.freeze(['digital', 'new']), description: '시원한 흰색, 또렷한 파랑과 작은 센서의 은은한 색 노이즈', badge: 'CCD 04' },
+    { id: 'party-flash', name: '파티 플래시', category: 'digital', categories: Object.freeze(['digital', 'new']), description: '짙은 암부와 깨끗한 밝은 색, 가까이서 찍은 밤의 스냅 분위기', badge: 'FLASH' },
+    { id: 'keitai2006', name: '2006 폴더폰', category: 'digital', categories: Object.freeze(['digital', 'retro', 'new']), description: '보랏빛 그림자와 옅게 번지는 색 경계, 오래된 휴대폰 사진', badge: 'KEITAI' },
+    { id: 'milk-tea', name: '밀크티 네거', category: 'film', categories: Object.freeze(['film', 'new']), description: '베이지색 밝은 톤과 잔잔한 갈색, 부드럽고 차분한 일상 필름', badge: 'LATTE' },
+    { id: 'peach-portrait', name: '피치 포트레이트', category: 'film', categories: Object.freeze(['film', 'new']), description: '피치빛 중간톤과 맑은 하이라이트, 햇살 아래 부드러운 인물 사진', badge: 'PEACH' },
+    { id: 'sage-daylight', name: '세이지 데이라이트', category: 'film', categories: Object.freeze(['film', 'new']), description: '녹색을 차분한 올리브로 정돈하고 흰색은 맑게 남기는 낮의 색감', badge: 'SAGE' },
+    { id: 'travel-chrome', name: '크롬 트래블', category: 'film', categories: Object.freeze(['film', 'new']), description: '깊은 파랑과 생생한 붉은색, 선명한 여행 슬라이드의 대비', badge: 'CHROME' },
+    { id: 'amber-hour', name: '앰버 아워', category: 'cinema', categories: Object.freeze(['cinema', 'new']), description: '구릿빛 햇살과 시원한 그늘, 늦은 오후의 따뜻한 영화색', badge: 'AMBER' },
+    { id: 'blue-hour', name: '블루 아워', category: 'cinema', categories: Object.freeze(['cinema', 'new']), description: '푸른 보랏빛 그림자와 장밋빛 밝은 색, 해가 진 뒤의 차분한 공기', badge: 'DUSK' },
+    { id: 'neon-diary', name: '네온 다이어리', category: 'cinema', categories: Object.freeze(['cinema', 'new']), description: '짙은 녹청 그림자와 붉게 번지는 광원, 밤거리의 필름 기록', badge: 'NEON' },
+    { id: 'silver-flash', name: '실버 플래시', category: 'mono', categories: Object.freeze(['mono', 'new']), description: '깨끗한 흰색과 단단한 검정, 미세한 입자의 흑백 스냅', badge: 'SILVER' },
+    { id: 'paper-matte', name: '페이퍼 매트', category: 'retro', categories: Object.freeze(['retro', 'new']), description: '은은한 종이색과 부드러운 회색 그림자, 차분한 매거진 인쇄 톤', badge: 'PAPER' },
     { id: 'album1991', name: '1991 가족앨범', category: 'nineties', description: '꿀빛 인화지, 부드러운 초점과 빛바랜 가족사진', badge: '1991' },
     { id: 'school1994', name: '1994 수학여행', category: 'nineties', description: '짙은 초록과 붉은 피부톤, 거친 필름 스냅', badge: '1994' },
     { id: 'summer1996', name: '1996 여름휴가', category: 'nineties', description: '청록 바다와 노란 햇살이 남은 여름 필름', badge: '1996' },
@@ -47,6 +59,82 @@
   // Curve control points correspond to input values 0, 64, 128, 192 and 255.
   // Tints are small channel offsets weighted by image luminance, not flat overlays.
   const recipes = {
+    // Contemporary, independently art-directed looks. New optional palette and
+    // sensor-noise controls are deliberately absent from the retained recipes.
+    ccd2004: {
+      analog: true, curve: [1, 50, 136, 215, 255],
+      channels: [[1, 49, 138, 215, 253], [2, 54, 140, 216, 255], [6, 61, 142, 220, 255]],
+      saturation: 1.10, shadow: [1, -2, 4], highlight: [-3, 0, 3],
+      grain: 3, grainSize: 0.75, vignette: 0.045, softness: 0.015, bloom: 0.025, chromaNoise: 13,
+    },
+    'party-flash': {
+      analog: true, curve: [0, 35, 145, 228, 255],
+      channels: [[0, 37, 149, 230, 255], [1, 36, 145, 228, 255], [5, 43, 145, 226, 252]],
+      saturation: 0.92, shadow: [-3, -1, 4], highlight: [0, 0, 1],
+      grain: 5, grainSize: 0.8, vignette: 0.16, softness: 0.025, bloom: 0.035, chromaNoise: 8,
+    },
+    keitai2006: {
+      analog: true, curve: [12, 54, 132, 217, 250],
+      channels: [[15, 65, 143, 222, 251], [8, 52, 127, 210, 247], [24, 72, 145, 224, 254]],
+      saturation: 0.72, shadow: [3, -2, 5], highlight: [1, 2, 0],
+      grain: 6, grainSize: 0.8, vignette: 0.055, softness: 0.12, bloom: 0.07, chromaBleed: 0.36, chromaNoise: 19,
+    },
+    'milk-tea': {
+      analog: true, curve: [15, 76, 145, 203, 244],
+      channels: [[17, 82, 153, 209, 247], [16, 77, 145, 202, 242], [20, 72, 133, 189, 233]],
+      saturation: 0.64, shadow: [1, 0, 2], highlight: [2, 1, -1],
+      grain: 7, grainSize: 1.15, vignette: 0.025, softness: 0.07, bloom: 0.045,
+    },
+    'peach-portrait': {
+      analog: true, curve: [7, 73, 145, 207, 251],
+      channels: [[9, 79, 153, 212, 253], [8, 74, 144, 207, 251], [13, 76, 141, 203, 249]],
+      saturation: 0.90, shadow: [1, 0, 2], highlight: [1, 0, 0],
+      colorZones: [{ hue: 25, width: 48, saturation: 0.93, shift: [3, 0, 1] }],
+      grain: 4, grainSize: 1.0, vignette: 0.02, softness: 0.06, bloom: 0.065,
+    },
+    'sage-daylight': {
+      analog: true, curve: [6, 61, 132, 204, 251],
+      channels: [[8, 64, 135, 205, 252], [9, 66, 135, 204, 251], [12, 64, 127, 194, 248]],
+      saturation: 0.87, shadow: [0, 1, 2], highlight: [0, 0, 0],
+      colorZones: [{ hue: 116, width: 68, saturation: 0.70, shift: [11, -3, -9] }, { hue: 205, width: 37, saturation: 0.90, shift: [0, 1, 2] }],
+      grain: 6, grainSize: 1.05, vignette: 0.035, softness: 0.025, bloom: 0.025,
+    },
+    'travel-chrome': {
+      analog: true, curve: [2, 44, 122, 208, 253],
+      channels: [[3, 47, 132, 216, 254], [3, 48, 127, 207, 252], [7, 55, 135, 215, 254]],
+      saturation: 1.13, shadow: [0, -1, 4], highlight: [1, 1, 0],
+      colorZones: [{ hue: 215, width: 50, saturation: 1.12, shift: [-6, -2, 3] }, { hue: 115, width: 50, saturation: 0.90, shift: [1, -2, 0] }],
+      grain: 5, grainSize: 0.95, vignette: 0.055, softness: 0.015, bloom: 0.025,
+    },
+    'amber-hour': {
+      analog: true, curve: [5, 53, 130, 207, 249],
+      channels: [[5, 55, 143, 222, 254], [7, 55, 131, 207, 246], [18, 61, 119, 181, 229]],
+      saturation: 0.91, shadow: [-4, 1, 8], highlight: [5, 1, -3],
+      grain: 9, grainSize: 1.2, vignette: 0.09, softness: 0.04, bloom: 0.12, halation: 0.11,
+    },
+    'blue-hour': {
+      analog: true, curve: [8, 49, 120, 194, 244],
+      channels: [[10, 46, 115, 196, 248], [9, 51, 122, 194, 242], [24, 73, 147, 211, 247]],
+      saturation: 0.83, shadow: [1, -3, 8], highlight: [7, -2, 2],
+      grain: 7, grainSize: 1.15, vignette: 0.10, softness: 0.055, bloom: 0.07,
+    },
+    'neon-diary': {
+      analog: true, curve: [1, 38, 117, 204, 250],
+      channels: [[2, 35, 118, 215, 254], [6, 54, 130, 205, 247], [13, 63, 133, 199, 237]],
+      saturation: 0.96, shadow: [-6, 6, 7], highlight: [8, -2, -4],
+      grain: 13, grainSize: 1.3, vignette: 0.14, softness: 0.04, bloom: 0.17, halation: 0.32,
+    },
+    'silver-flash': {
+      analog: true, monochrome: true, curve: [0, 29, 128, 227, 255],
+      saturation: 0, shadow: [0, 0, 0], highlight: [0, 0, 0],
+      grain: 7, grainSize: 0.9, vignette: 0.10, softness: 0.015, bloom: 0.035,
+    },
+    'paper-matte': {
+      analog: true, curve: [28, 83, 140, 195, 237],
+      channels: [[29, 85, 143, 199, 241], [28, 83, 140, 195, 238], [29, 81, 135, 188, 230]],
+      saturation: 0.55, shadow: [0, 0, 1], highlight: [1, 1, 0],
+      grain: 10, grainSize: 1.4, vignette: 0.025, softness: 0.045, bloom: 0.02,
+    },
     // New analog looks have separate dye curves and optical/texture treatments.
     // The numbers are art-directed interpretations, not measured film profiles.
     album1991: {
@@ -298,8 +386,45 @@
     return hash >>> 0;
   }
 
-  // Box passes approximate lens diffusion. All fields are premultiplied by
-  // alpha, including highlight energy, so hidden RGB never bleeds into a photo.
+  // All optical fields are bounded to a 480px long edge and alpha weighted.
+  // Highlight energy is measured in linear sRGB, separately from image detail.
+  const linearTable = new Float32Array(256);
+  const encodedTable = new Float32Array(4097);
+  for (let i = 0; i < 256; i += 1) {
+    const v = i / 255;
+    linearTable[i] = v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  }
+  for (let i = 0; i <= 4096; i += 1) {
+    const v = i / 2048;
+    encodedTable[i] = 255 * (v <= 0.0031308 ? v * 12.92 : 1.055 * v ** (1 / 2.4) - 0.055);
+  }
+  function sampleCurve(table, value) {
+    // Extend endpoint slopes rather than clipping a color before gamut mapping.
+    if (value < 0) return table[0] + value * (table[1] - table[0]);
+    if (value >= 255) return table[255] + (value - 255) * (table[255] - table[254]);
+    const index = math.floor(value);
+    return table[index] + (table[index + 1] - table[index]) * (value - index);
+  }
+  function linearChannel(value) {
+    if (value <= 0) return value / 3294.6;
+    if (value > 255) return ((value / 255 + 0.055) / 1.055) ** 2.4;
+    return sampleCurve(linearTable, value);
+  }
+  function encodedChannel(value) {
+    if (value <= 0) return value * 3294.6;
+    if (value >= 2) return 255 * (1.055 * value ** (1 / 2.4) - 0.055);
+    const position = value * 2048;
+    const index = math.floor(position);
+    return encodedTable[index] + (encodedTable[index + 1] - encodedTable[index]) * (position - index);
+  }
+  function smoothstep(low, high, value) {
+    const t = math.max(0, math.min(1, (value - low) / (high - low)));
+    return t * t * (3 - 2 * t);
+  }
+  function highlightEnergy(r, g, b) {
+    const light = linearTable[r] * 0.2126 + linearTable[g] * 0.7152 + linearTable[b] * 0.0722;
+    return smoothstep(0.52, 0.96, light) * light;
+  }
   function blurField(input, width, height, radius, horizontalOnly = false) {
     const stride = 5;
     const temporary = new Float32Array(input.length);
@@ -308,15 +433,11 @@
     for (let y = 0; y < height; y += 1) {
       for (let channel = 0; channel < stride; channel += 1) {
         let sum = 0;
-        for (let k = -radius; k <= radius; k += 1) {
-          const x = math.max(0, math.min(width - 1, k));
-          sum += input[(y * width + x) * stride + channel];
-        }
+        for (let k = -radius; k <= radius; k += 1) sum += input[(y * width + math.max(0, math.min(width - 1, k))) * stride + channel];
         for (let x = 0; x < width; x += 1) {
           temporary[(y * width + x) * stride + channel] = sum / divisor;
-          const remove = math.max(0, x - radius);
-          const add = math.min(width - 1, x + radius + 1);
-          sum += input[(y * width + add) * stride + channel] - input[(y * width + remove) * stride + channel];
+          sum += input[(y * width + math.min(width - 1, x + radius + 1)) * stride + channel]
+            - input[(y * width + math.max(0, x - radius)) * stride + channel];
         }
       }
     }
@@ -324,22 +445,18 @@
     for (let x = 0; x < width; x += 1) {
       for (let channel = 0; channel < stride; channel += 1) {
         let sum = 0;
-        for (let k = -radius; k <= radius; k += 1) {
-          const y = math.max(0, math.min(height - 1, k));
-          sum += temporary[(y * width + x) * stride + channel];
-        }
+        for (let k = -radius; k <= radius; k += 1) sum += temporary[(math.max(0, math.min(height - 1, k)) * width + x) * stride + channel];
         for (let y = 0; y < height; y += 1) {
           output[(y * width + x) * stride + channel] = sum / divisor;
-          const remove = math.max(0, y - radius);
-          const add = math.min(height - 1, y + radius + 1);
-          sum += temporary[(add * width + x) * stride + channel] - temporary[(remove * width + x) * stride + channel];
+          sum += temporary[(math.min(height - 1, y + radius + 1) * width + x) * stride + channel]
+            - temporary[(math.max(0, y - radius) * width + x) * stride + channel];
         }
       }
     }
     return output;
   }
-
-  function spatialFields(source, width, height, recipe) {
+  function spatialFields(source, width, height, recipe, options) {
+    if (!(recipe.softness || recipe.edgeSoftness || recipe.chromaBleed || recipe.bloom * options.bloom || recipe.halation * options.halation)) return null;
     const scale = math.min(1, 480 / math.max(width, height));
     const smallWidth = math.max(1, math.ceil(width * scale));
     const smallHeight = math.max(1, math.ceil(height * scale));
@@ -350,102 +467,168 @@
     for (let y = 0, offset = 0; y < height; y += 1) {
       const row = math.min(smallHeight - 1, math.floor(y * smallHeight / height)) * smallWidth;
       for (let x = 0; x < width; x += 1, offset += 4) {
-        const pixel = row + columns[x];
-        const target = pixel * 5;
+        const pixel = row + columns[x], target = pixel * 5;
         const alpha = source[offset + 3] / 255;
-        const luminance = 0.2126 * source[offset] + 0.7152 * source[offset + 1] + 0.0722 * source[offset + 2];
-        const highlight = math.max(0, (luminance - 172) / 83);
         field[target] += source[offset] * alpha;
         field[target + 1] += source[offset + 1] * alpha;
         field[target + 2] += source[offset + 2] * alpha;
         field[target + 3] += alpha;
-        field[target + 4] += highlight * highlight * alpha;
+        field[target + 4] += highlightEnergy(source[offset], source[offset + 1], source[offset + 2]) * alpha;
         counts[pixel] += 1;
       }
     }
     for (let pixel = 0; pixel < counts.length; pixel += 1) {
-      const divisor = counts[pixel] || 1;
-      for (let channel = 0; channel < 5; channel += 1) field[pixel * 5 + channel] /= divisor;
+      for (let channel = 0; channel < 5; channel += 1) field[pixel * 5 + channel] /= counts[pixel] || 1;
     }
-    const lens = blurField(field, smallWidth, smallHeight, 1);
-    const radius = math.max(1, math.round(math.min(smallWidth, smallHeight) * 0.009));
-    const glow = blurField(blurField(field, smallWidth, smallHeight, radius), smallWidth, smallHeight, radius);
+    const lens = recipe.softness || recipe.edgeSoftness ? blurField(field, smallWidth, smallHeight, 1) : null;
+    let glow = null;
+    if (recipe.bloom * options.bloom || recipe.halation * options.halation) {
+      const radius = math.max(1, math.round(math.min(smallWidth, smallHeight) * 0.007));
+      glow = blurField(blurField(field, smallWidth, smallHeight, radius), smallWidth, smallHeight, radius);
+      const broad = blurField(glow, smallWidth, smallHeight, radius * 2);
+      for (let i = 0; i < glow.length; i += 1) glow[i] = glow[i] * 0.78 + broad[i] * 0.22;
+    }
     const chroma = recipe.chromaBleed ? blurField(field, smallWidth, smallHeight, math.max(2, math.round(smallWidth / 100)), true) : null;
     return { lens, glow, chroma, width: smallWidth, height: smallHeight };
   }
-
   function interpolationAxis(length, gridLength) {
-    const lower = new Uint32Array(length);
-    const upper = new Uint32Array(length);
-    const weight = new Float32Array(length);
+    const lower = new Uint32Array(length), upper = new Uint32Array(length), weight = new Float32Array(length);
     for (let i = 0; i < length; i += 1) {
       const position = math.max(0, math.min(gridLength - 1, (i + 0.5) * gridLength / length - 0.5));
-      lower[i] = math.floor(position);
-      upper[i] = math.min(gridLength - 1, lower[i] + 1);
-      weight[i] = position - lower[i];
+      lower[i] = math.floor(position); upper[i] = math.min(gridLength - 1, lower[i] + 1); weight[i] = position - lower[i];
     }
     return { lower, upper, weight };
   }
-
   function randomAt(x, y, seed) {
     let value = math.imul(x + 1, 374761393) ^ math.imul(y + 1, 668265263) ^ seed;
     value = math.imul(value ^ (value >>> 13), 1274126177);
     return ((value ^ (value >>> 16)) >>> 0) / 4294967296;
   }
-
-  function grainField(width, height, size, seed) {
-    const cell = math.max(1.25, math.max(width, height) / 600 * size);
-    const columns = math.max(2, math.ceil(width / cell) + 1);
-    const rows = math.max(2, math.ceil(height / cell) + 1);
-    const values = new Float32Array(columns * rows);
-    for (let y = 0; y < rows; y += 1) {
-      for (let x = 0; x < columns; x += 1) values[y * columns + x] = randomAt(x, y, seed ^ 0x6c8e9cf5) - 0.5;
+  // Fixed frame-space lattices: increasing export resolution samples the same
+  // grain clusters instead of increasing their count. Unresolved fine grain is
+  // attenuated in small thumbnails to avoid aliasing and harsh pixel speckles.
+  function grainAxis(length, longEdge, frequency) {
+    const lower = new Uint32Array(length), weight = new Float32Array(length);
+    for (let i = 0; i < length; i += 1) {
+      const position = (i + 0.5) / longEdge * frequency;
+      lower[i] = math.floor(position);
+      const t = position - lower[i];
+      weight[i] = t * t * (3 - 2 * t);
     }
-    return { values, width: columns, x: interpolationAxis(width, columns), y: interpolationAxis(height, rows) };
+    return { lower, weight };
   }
-
+  function grainField(width, height, size) {
+    const longEdge = math.max(width, height);
+    const coarse = 420 / math.max(0.7, size);
+    const fine = 1180 / math.max(0.7, size);
+    return {
+      coarse: { x: grainAxis(width, longEdge, coarse), y: grainAxis(height, longEdge, coarse), gain: math.min(1, longEdge / coarse) },
+      fine: { x: grainAxis(width, longEdge, fine), y: grainAxis(height, longEdge, fine), gain: math.min(1, longEdge / fine) },
+    };
+  }
+  function sampleGrain(field, x, y, seed) {
+    const nx = field.x.lower[x], ny = field.y.lower[y], wx = field.x.weight[x], wy = field.y.weight[y];
+    const a = randomAt(nx, ny, seed), b = randomAt(nx + 1, ny, seed);
+    const c = randomAt(nx, ny + 1, seed), d = randomAt(nx + 1, ny + 1, seed);
+    return ((a + (b - a) * wx) * (1 - wy) + (c + (d - c) * wx) * wy - 0.5) * field.gain;
+  }
   function interpolate(field, p00, p10, p01, p11, wx, wy, channel) {
     const top = field[p00 + channel] + (field[p10 + channel] - field[p00 + channel]) * wx;
     const bottom = field[p01 + channel] + (field[p11 + channel] - field[p01 + channel]) * wx;
     return top + (bottom - top) * wy;
   }
-
-  // A few small irregular specks, used only on archival print styles.
-  // Pixel positions are normalized, so a thumbnail doesn't acquire giant dust.
-  function addPrintDust(data, width, height, count, seed, monochrome) {
+  function printDust(width, height, count, seed, texture) {
+    if (!count || !texture) return [];
     const scale = math.max(width, height) / 1440;
-    const radius = math.max(0.45, scale * 0.8);
+    const radius = math.max(0.45, scale * 0.8), extent = math.ceil(radius);
+    const records = [];
     for (let i = 0; i < count; i += 1) {
-      const centerX = randomAt(i, 13, seed) * (width - 1);
-      const centerY = randomAt(i, 37, seed) * (height - 1);
-      const light = randomAt(i, 59, seed) > 0.7;
-      const extent = math.ceil(radius);
-      for (let y = math.max(0, math.floor(centerY) - extent); y <= math.min(height - 1, math.ceil(centerY) + extent); y += 1) {
-        for (let x = math.max(0, math.floor(centerX) - extent); x <= math.min(width - 1, math.ceil(centerX) + extent); x += 1) {
-          const distance = ((x - centerX) ** 2 + (y - centerY) ** 2) / (radius * radius);
-          if (distance >= 1) continue;
-          const offset = (y * width + x) * 4;
-          if (data[offset + 3] === 0) continue;
-          const opacity = (1 - distance) * 0.20 * math.min(1, scale * 2);
-          const target = light ? 225 : 24;
-          data[offset] += (target - data[offset]) * opacity;
-          data[offset + 1] += (target - data[offset + 1]) * opacity;
-          data[offset + 2] += ((monochrome ? target : target - 3) - data[offset + 2]) * opacity;
+      const cx = randomAt(i, 13, seed) * (width - 1), cy = randomAt(i, 37, seed) * (height - 1);
+      const target = randomAt(i, 59, seed) > 0.7 ? 225 : 24;
+      for (let y = math.max(0, math.floor(cy) - extent); y <= math.min(height - 1, math.ceil(cy) + extent); y += 1) {
+        for (let x = math.max(0, math.floor(cx) - extent); x <= math.min(width - 1, math.ceil(cx) + extent); x += 1) {
+          const distance = ((x - cx) ** 2 + (y - cy) ** 2) / (radius * radius);
+          if (distance < 1) records.push({ offset: (y * width + x) * 4, target, opacity: (1 - distance) * 0.20 * math.min(1, scale * 2) * texture });
         }
       }
     }
+    return records.sort((a, b) => a.offset - b.offset);
+  }
+  // Hue-local grading, not subject or skin detection. Smooth hue boundaries
+  // and saturation/tone gates leave neutral whites and deep blacks alone.
+  // Coordinates are measured before grading, so one zone cannot feed another.
+  function gradeColorZones(r, g, b, zones, output) {
+    output[0] = r; output[1] = g; output[2] = b;
+    const high = math.max(r, g, b);
+    const low = math.min(r, g, b);
+    const chroma = high - low;
+    if (chroma < 0.000001 || high < 0.000001) return;
+    let hue;
+    if (high === r) hue = (g - b) / chroma;
+    else if (high === g) hue = (b - r) / chroma + 2;
+    else hue = (r - g) / chroma + 4;
+    hue = ((hue * 60) % 360 + 360) % 360;
+    const light = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    const normalized = math.max(0, math.min(1, light / 255));
+    const gate = math.min(1, chroma / high / 0.32) * 4 * normalized * (1 - normalized);
+    for (const zone of zones) {
+      const distance = math.abs(hue - zone.hue);
+      const circular = math.min(distance, 360 - distance);
+      const falloff = math.max(0, 1 - circular / zone.width);
+      const weight = falloff * falloff * (3 - 2 * falloff) * gate;
+      if (!weight) continue;
+      const saturation = zone.saturation - 1;
+      output[0] += ((r - light) * saturation + zone.shift[0]) * weight;
+      output[1] += ((g - light) * saturation + zone.shift[1]) * weight;
+      output[2] += ((b - light) * saturation + zone.shift[2]) * weight;
+    }
   }
 
-  function renderAnalog(data, width, height, recipe, strength, seed) {
+  function warmColorWeight(r, g, b) {
+    const high = math.max(r, g, b), low = math.min(r, g, b), chroma = high - low;
+    if (chroma < 1 || high < 1 || high !== r) return 0;
+    const hue = ((g - b) / chroma * 60 + 360) % 360;
+    const hueWeight = smoothstep(4, 19, hue) * (1 - smoothstep(43, 65, hue));
+    const saturation = chroma / high;
+    const light = (r * 0.2126 + g * 0.7152 + b * 0.0722) / 255;
+    return hueWeight * smoothstep(0.06, 0.20, saturation) * (1 - smoothstep(0.70, 0.95, saturation))
+      * smoothstep(0.025, 0.13, light) * (1 - smoothstep(0.86, 0.99, light));
+  }
+  // A compact display-referred sRGB approximation, not an ACES transform.
+  // Luminance receives a gentle shoulder; chroma is smoothly compressed toward
+  // that luminance before channels reach the display boundary. This avoids the
+  // hue turns and flat channel plateaus produced by independent RGB clipping.
+  function finishColor(r, g, b, output) {
+    const light = r * 0.2126 + g * 0.7152 + b * 0.0722;
+    const mapped = light > 232 ? 232 + 23 * (1 - math.exp(-(light - 232) / 23)) : math.max(0, light);
+    const dr = r - light, dg = g - light, db = b - light;
+    const upper = math.max(dr, dg, db, 0), lower = -math.min(dr, dg, db, 0);
+    const ratio = math.max(upper / math.max(0.00001, 255 - mapped), lower / math.max(0.00001, mapped));
+    const chroma = ratio > 0.82 ? (0.82 + 0.18 * (1 - math.exp(-(ratio - 0.82) / 0.18))) / ratio : 1;
+    output[0] = mapped + dr * chroma;
+    output[1] = mapped + dg * chroma;
+    output[2] = mapped + db * chroma;
+  }
+  function normalizedOption(value, fallback, maximum) {
+    const number = value === undefined || value === null ? fallback : Number(value);
+    return Number.isFinite(number) ? math.max(0, math.min(maximum, number)) : fallback;
+  }
+  function optionsFor(options) {
+    return {
+      texture: normalizedOption(options.texture, 1, 1.5),
+      bloom: normalizedOption(options.bloom, 1, 1.5),
+      halation: normalizedOption(options.halation, 1, 1.5),
+      skinProtect: normalizedOption(options.skinProtect, 0.6, 1),
+    };
+  }
+  function renderFilm(data, width, height, recipe, id, strength, seed, options) {
     const source = new Uint8ClampedArray(data);
-    const fields = spatialFields(source, width, height, recipe);
-    const axisX = interpolationAxis(width, fields.width);
-    const axisY = interpolationAxis(height, fields.height);
-    const grain = grainField(width, height, recipe.grainSize, seed);
-    const horizontal = new Float32Array(width);
-    const vertical = new Float32Array(height);
-    const leakX = recipe.lightLeak ? new Float32Array(width) : null;
-    const leakY = recipe.lightLeak ? new Float32Array(height) : null;
+    const fields = spatialFields(source, width, height, recipe, options);
+    const axisX = fields ? interpolationAxis(width, fields.width) : null;
+    const axisY = fields ? interpolationAxis(height, fields.height) : null;
+    const grain = options.texture && (recipe.grain || recipe.chromaNoise) ? grainField(width, height, recipe.grainSize || 1.2) : null;
+    const horizontal = new Float32Array(width), vertical = new Float32Array(height);
+    const leakX = recipe.lightLeak ? new Float32Array(width) : null, leakY = recipe.lightLeak ? new Float32Array(height) : null;
     for (let x = 0; x < width; x += 1) {
       horizontal[x] = ((x + 0.5) / width * 2 - 1) ** 2;
       if (leakX) leakX[x] = math.exp(-1 * (((x + 0.5) / width + 0.02) / 0.19) ** 2);
@@ -455,213 +638,152 @@
       if (leakY) leakY[y] = 0.30 + 0.70 * math.exp(-1 * (((y + 0.5) / height - 0.72) / 0.36) ** 2);
     }
     const tables = recipe.channelTables || [recipe.table, recipe.table, recipe.table];
-    const textureScale = 0.4 + 0.6 * math.min(1, math.max(width, height) / 800);
-    const fieldWidth = fields.width * 5;
+    const color = new Float64Array(3);
+    const dust = printDust(width, height, recipe.dust, seed, options.texture);
+    const monochrome = recipe.monochrome || id === 'moon';
+    const protect = monochrome || recipe.tonedMono ? 0 : options.skinProtect * 0.72;
+    let dustIndex = 0;
     for (let y = 0, offset = 0; y < height; y += 1) {
-      const row0 = axisY.lower[y] * fieldWidth;
-      const row1 = axisY.upper[y] * fieldWidth;
-      const wy = axisY.weight[y];
-      const noiseRow0 = grain.y.lower[y] * grain.width;
-      const noiseRow1 = grain.y.upper[y] * grain.width;
-      const noiseWY = grain.y.weight[y];
+      const row0 = fields ? axisY.lower[y] * fields.width * 5 : 0;
+      const row1 = fields ? axisY.upper[y] * fields.width * 5 : 0;
+      const wy = fields ? axisY.weight[y] : 0;
       const scanline = recipe.scanline ? 1 - recipe.scanline * (0.5 + 0.5 * math.cos((y + 0.5) / math.max(1, height / 480) * math.PI)) : 1;
       for (let x = 0; x < width; x += 1, offset += 4) {
         if (source[offset + 3] === 0) continue;
-        const p00 = row0 + axisX.lower[x] * 5;
-        const p10 = row0 + axisX.upper[x] * 5;
-        const p01 = row1 + axisX.lower[x] * 5;
-        const p11 = row1 + axisX.upper[x] * 5;
-        const wx = axisX.weight[x];
+        const originalR = source[offset], originalG = source[offset + 1], originalB = source[offset + 2];
+        let r = originalR, g = originalG, b = originalB;
         const edgeDistance = math.max(0, (horizontal[x] + vertical[y] - 0.12) / 1.88);
-        const softness = recipe.softness + (recipe.edgeSoftness || 0) * edgeDistance;
-        const lensAlpha = math.max(0.000001, interpolate(fields.lens, p00, p10, p01, p11, wx, wy, 3));
-        let r = source[offset];
-        let g = source[offset + 1];
-        let b = source[offset + 2];
-        r += (interpolate(fields.lens, p00, p10, p01, p11, wx, wy, 0) / lensAlpha - r) * softness;
-        g += (interpolate(fields.lens, p00, p10, p01, p11, wx, wy, 1) / lensAlpha - g) * softness;
-        b += (interpolate(fields.lens, p00, p10, p01, p11, wx, wy, 2) / lensAlpha - b) * softness;
-        if (fields.chroma) {
-          const chromaAlpha = math.max(0.000001, interpolate(fields.chroma, p00, p10, p01, p11, wx, wy, 3));
-          const cr = interpolate(fields.chroma, p00, p10, p01, p11, wx, wy, 0) / chromaAlpha;
-          const cg = interpolate(fields.chroma, p00, p10, p01, p11, wx, wy, 1) / chromaAlpha;
-          const cb = interpolate(fields.chroma, p00, p10, p01, p11, wx, wy, 2) / chromaAlpha;
-          const ownLuma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-          const neighborLuma = 0.2126 * cr + 0.7152 * cg + 0.0722 * cb;
-          r += ((cr - neighborLuma) - (r - ownLuma)) * recipe.chromaBleed;
-          g += ((cg - neighborLuma) - (g - ownLuma)) * recipe.chromaBleed;
-          b += ((cb - neighborLuma) - (b - ownLuma)) * recipe.chromaBleed;
+        const p00 = fields ? row0 + axisX.lower[x] * 5 : 0, p10 = fields ? row0 + axisX.upper[x] * 5 : 0;
+        const p01 = fields ? row1 + axisX.lower[x] * 5 : 0, p11 = fields ? row1 + axisX.upper[x] * 5 : 0;
+        const wx = fields ? axisX.weight[x] : 0;
+        if (fields?.lens) {
+          const softness = (recipe.softness || 0) + (recipe.edgeSoftness || 0) * edgeDistance;
+          const alpha = math.max(0.000001, interpolate(fields.lens, p00, p10, p01, p11, wx, wy, 3));
+          r += (interpolate(fields.lens, p00, p10, p01, p11, wx, wy, 0) / alpha - r) * softness;
+          g += (interpolate(fields.lens, p00, p10, p01, p11, wx, wy, 1) / alpha - g) * softness;
+          b += (interpolate(fields.lens, p00, p10, p01, p11, wx, wy, 2) / alpha - b) * softness;
         }
-        if (recipe.monochrome || recipe.tonedMono) {
-          const gray = clamp(0.2126 * r + 0.7152 * g + 0.0722 * b);
-          r = gray;
-          g = gray;
-          b = gray;
+        if (fields?.chroma) {
+          const alpha = math.max(0.000001, interpolate(fields.chroma, p00, p10, p01, p11, wx, wy, 3));
+          const cr = interpolate(fields.chroma, p00, p10, p01, p11, wx, wy, 0) / alpha;
+          const cg = interpolate(fields.chroma, p00, p10, p01, p11, wx, wy, 1) / alpha;
+          const cb = interpolate(fields.chroma, p00, p10, p01, p11, wx, wy, 2) / alpha;
+          const ownLight = r * 0.2126 + g * 0.7152 + b * 0.0722, neighborLight = cr * 0.2126 + cg * 0.7152 + cb * 0.0722;
+          r += ((cr - neighborLight) - (r - ownLight)) * recipe.chromaBleed;
+          g += ((cg - neighborLight) - (g - ownLight)) * recipe.chromaBleed;
+          b += ((cb - neighborLight) - (b - ownLight)) * recipe.chromaBleed;
         }
-        r = tables[0][math.round(clamp(r))];
-        g = tables[1][math.round(clamp(g))];
-        b = tables[2][math.round(clamp(b))];
-        const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-        const luma = luminance / 255;
-        const shadows = (1 - luma) ** 2;
-        const highlights = luma ** 2;
-        r = luminance + (r - luminance) * recipe.saturation + recipe.shadow[0] * shadows + recipe.highlight[0] * highlights;
-        g = luminance + (g - luminance) * recipe.saturation + recipe.shadow[1] * shadows + recipe.highlight[1] * highlights;
-        b = luminance + (b - luminance) * recipe.saturation + recipe.shadow[2] * shadows + recipe.highlight[2] * highlights;
-
-        const glowAlpha = math.max(0.000001, interpolate(fields.glow, p00, p10, p01, p11, wx, wy, 3));
-        const glow = math.max(0, interpolate(fields.glow, p00, p10, p01, p11, wx, wy, 4) / glowAlpha);
-        const bloom = glow * recipe.bloom;
-        // Screen blending lifts a bright light's surroundings without clipping it.
-        r += (255 - r) * bloom;
-        g += (255 - g) * bloom;
-        b += (255 - b) * bloom;
-        if (recipe.halation) {
-          const originalLuma = (0.2126 * source[offset] + 0.7152 * source[offset + 1] + 0.0722 * source[offset + 2]) / 255;
-          const halo = glow * (1 - originalLuma * originalLuma) * recipe.halation;
-          r += (255 - r) * halo;
-          g += (255 - g) * halo * 0.22;
+        if (recipe.legacy) {
+          legacyColor(id, r, g, b, color); r = color[0]; g = color[1]; b = color[2];
+        } else {
+          if (recipe.colorZones) {
+            gradeColorZones(r, g, b, recipe.colorZones, color); r = color[0]; g = color[1]; b = color[2];
+          }
+          if (monochrome || recipe.tonedMono) r = g = b = r * 0.2126 + g * 0.7152 + b * 0.0722;
+          r = sampleCurve(tables[0], r); g = sampleCurve(tables[1], g); b = sampleCurve(tables[2], b);
+          const light = r * 0.2126 + g * 0.7152 + b * 0.0722;
+          const luma = math.max(0, math.min(1, light / 255)), shadows = (1 - luma) ** 2, highlights = luma ** 2;
+          r = light + (r - light) * recipe.saturation + recipe.shadow[0] * shadows + recipe.highlight[0] * highlights + (recipe.tint?.[0] || 0);
+          g = light + (g - light) * recipe.saturation + recipe.shadow[1] * shadows + recipe.highlight[1] * highlights + (recipe.tint?.[1] || 0);
+          b = light + (b - light) * recipe.saturation + recipe.shadow[2] * shadows + recipe.highlight[2] * highlights + (recipe.tint?.[2] || 0);
+        }
+        if (fields?.glow) {
+          const alpha = math.max(0.000001, interpolate(fields.glow, p00, p10, p01, p11, wx, wy, 3));
+          const energy = math.max(0, interpolate(fields.glow, p00, p10, p01, p11, wx, wy, 4) / alpha);
+          // Only energy spreading beyond a bright region forms a colored halo.
+          // A uniform bright surface has zero excess, including bright skin.
+          const halo = math.max(0, energy - highlightEnergy(originalR, originalG, originalB)) * (recipe.halation || 0) * options.halation;
+          const bloom = energy * (recipe.bloom || 0) * options.bloom * 0.25;
+          if (halo > 0.000001 || bloom > 0.000001) {
+            r = encodedChannel(linearChannel(r) + bloom + halo * 0.22);
+            g = encodedChannel(linearChannel(g) + bloom + halo * 0.045);
+            b = encodedChannel(linearChannel(b) + bloom);
+          }
         }
         if (leakX) {
           const leak = leakX[x] * leakY[y] * recipe.lightLeak;
-          r += (255 - r) * leak;
-          g += (255 - g) * leak * 0.29;
-          b += (255 - b) * leak * 0.055;
+          r += (255 - r) * leak; g += (255 - g) * leak * 0.29; b += (255 - b) * leak * 0.055;
         }
-        const nx0 = grain.x.lower[x];
-        const nx1 = grain.x.upper[x];
-        const noiseWX = grain.x.weight[x];
-        const topNoise = grain.values[noiseRow0 + nx0] + (grain.values[noiseRow0 + nx1] - grain.values[noiseRow0 + nx0]) * noiseWX;
-        const bottomNoise = grain.values[noiseRow1 + nx0] + (grain.values[noiseRow1 + nx1] - grain.values[noiseRow1 + nx0]) * noiseWX;
-        const correlated = topNoise + (bottomNoise - topNoise) * noiseWY;
-        const noise = ((randomAt(x, y, seed) - 0.5) * 0.65 + correlated * 0.95)
-          * recipe.grain * (1 - luma * 0.65) * textureScale;
+        if (protect) {
+          const amount = warmColorWeight(originalR, originalG, originalB) * protect;
+          if (amount > 0) {
+            const originalLight = originalR * 0.2126 + originalG * 0.7152 + originalB * 0.0722;
+            const light = r * 0.2126 + g * 0.7152 + b * 0.0722;
+            const scale = math.max(0.25, math.min(1.75, light / math.max(1, originalLight)));
+            r += ((originalR - originalLight) * scale - (r - light)) * amount;
+            g += ((originalG - originalLight) * scale - (g - light)) * amount;
+            b += ((originalB - originalLight) * scale - (b - light)) * amount;
+          }
+        }
+        const luma = math.max(0, math.min(1, (r * 0.2126 + g * 0.7152 + b * 0.0722) / 255));
+        let noise = 0;
+        if (grain) {
+          const coarse = sampleGrain(grain.coarse, x, y, seed ^ 0x6c8e9cf5);
+          const fine = sampleGrain(grain.fine, x, y, seed ^ 0x217ab23d);
+          const response = 0.32 + 0.68 * math.sqrt(math.max(0, 4 * luma * (1 - luma)));
+          noise = (coarse * 0.65 + fine * 0.75) * recipe.grain * options.texture * response;
+          if (recipe.chromaNoise && !monochrome) {
+            const amount = recipe.chromaNoise * (1 - luma) ** 2 * options.texture;
+            // Chroma mottling has a larger footprint than luminance grain.
+            const redNoise = sampleGrain(grain.coarse, x, y, seed ^ 0x187db1c5) * amount;
+            const blueNoise = sampleGrain(grain.coarse, x, y, seed ^ 0x52e7a839) * amount;
+            r += redNoise; g -= (redNoise * 0.2126 + blueNoise * 0.0722) / 0.7152; b += blueNoise;
+          }
+        }
         const vignette = (1 - recipe.vignette * edgeDistance * edgeDistance) * scanline;
-        r = clamp((r + noise) * vignette);
-        g = clamp((g + noise) * vignette);
-        b = clamp((b + noise) * vignette);
-        if (recipe.monochrome) g = b = r;
-        data[offset] = r;
-        data[offset + 1] = g;
-        data[offset + 2] = b;
-      }
-    }
-    if (recipe.dust) addPrintDust(data, width, height, recipe.dust, seed, recipe.monochrome);
-    if (strength < 1) {
-      for (let offset = 0; offset < data.length; offset += 4) {
-        data[offset] = source[offset] + (data[offset] - source[offset]) * strength;
-        data[offset + 1] = source[offset + 1] + (data[offset + 1] - source[offset + 1]) * strength;
-        data[offset + 2] = source[offset + 2] + (data[offset + 2] - source[offset + 2]) * strength;
+        r = (r + noise) * vignette; g = (g + noise) * vignette; b = (b + noise) * vignette;
+        while (dustIndex < dust.length && dust[dustIndex].offset < offset) dustIndex += 1;
+        while (dustIndex < dust.length && dust[dustIndex].offset === offset) {
+          const speck = dust[dustIndex++];
+          r += (speck.target - r) * speck.opacity; g += (speck.target - g) * speck.opacity;
+          b += (speck.target - (monochrome ? 0 : 3) - b) * speck.opacity;
+        }
+        finishColor(r, g, b, color);
+        if (monochrome) color[1] = color[2] = color[0];
+        // Fixed, sub-LSB dither is independent of the texture seed. It avoids
+        // visible rounding contours without changing clean-render reproducibility.
+        const dither = (randomAt(x, y, 0x4a91ef23) - 0.5) * 0.65;
+        data[offset] = originalR + (color[0] - originalR + dither) * strength;
+        data[offset + 1] = originalG + (color[1] - originalG + dither) * strength;
+        data[offset + 2] = originalB + (color[2] - originalB + dither) * strength;
       }
     }
   }
-
+  function getCapabilities(id) {
+    const recipe = recipes[id];
+    return Object.freeze({
+      texture: Boolean(recipe && (recipe.grain || recipe.chromaNoise || recipe.dust)),
+      bloom: Boolean(recipe?.bloom), halation: Boolean(recipe?.halation),
+      skinProtect: Boolean(recipe && !recipe.monochrome && !recipe.tonedMono && id !== 'moon'),
+    });
+  }
   /**
-   * Paint sourceCanvas at the destination canvas size, then apply a preset.
-   * strength is 0..1; seed fixes the grain pattern across repeated renders.
-   * The source canvas is never modified. Destination alpha is preserved.
+   * Render a complete float-pixel grade, then mix strength and quantize once.
+   * strength 0..1; texture/bloom/halation 0..1.5; skinProtect 0..1.
+   * The source and alpha are unchanged. An opaque 8-bit sRGB input cannot regain
+   * clipped source detail; shoulder and gamut compression preserve what remains.
    */
   function render(context, sourceCanvas, id, options = {}) {
     if (!context || !sourceCanvas) throw new TypeError('A context and source canvas are required.');
     if (context.canvas === sourceCanvas) throw new TypeError('Source and destination canvases must be different.');
-    if (id !== 'original' && !Object.prototype.hasOwnProperty.call(recipes, id)) {
-      throw new RangeError(`Unknown filter: ${id}`);
-    }
-    const requestedStrength = Number(options.strength ?? 1);
-    const strength = Number.isFinite(requestedStrength) ? math.max(0, math.min(1, requestedStrength)) : 1;
+    if (id !== 'original' && !Object.prototype.hasOwnProperty.call(recipes, id)) throw new RangeError(`Unknown filter: ${id}`);
+    const strength = normalizedOption(options.strength, 1, 1);
     const { width, height } = context.canvas;
     if (!width || !height || !sourceCanvas.width || !sourceCanvas.height) return;
-
     context.save();
     try {
       context.setTransform(1, 0, 0, 1, 0, 0);
-      context.globalAlpha = 1;
-      context.globalCompositeOperation = 'source-over';
+      context.globalAlpha = 1; context.globalCompositeOperation = 'source-over';
       if ('filter' in context) context.filter = 'none';
-      context.shadowColor = 'rgba(0,0,0,0)';
-      context.shadowBlur = 0;
+      context.shadowColor = 'rgba(0,0,0,0)'; context.shadowBlur = 0;
       context.clearRect(0, 0, width, height);
       context.drawImage(sourceCanvas, 0, 0, width, height);
       if (id === 'original' || strength === 0) return;
-
-      const recipe = recipes[id];
-      const imageData = context.getImageData(0, 0, width, height);
-      const data = imageData.data;
-      if (recipe.analog) {
-        renderAnalog(data, width, height, recipe, strength, ((Number(options.seed ?? 1) >>> 0) ^ hashString(id)) >>> 0);
-        context.putImageData(imageData, 0, 0);
-        return;
-      }
-      const color = new Float64Array(3);
-      let randomState = ((Number(options.seed ?? 1) >>> 0) ^ hashString(id)) >>> 0 || 1;
-
-      // Normalize both axes: portrait and landscape images receive the same
-      // edge falloff instead of a circle sized only from the image's height.
-      const horizontal = new Float32Array(width);
-      const vertical = new Float32Array(height);
-      for (let x = 0; x < width; x += 1) horizontal[x] = ((x + 0.5) / width * 2 - 1) ** 2;
-      for (let y = 0; y < height; y += 1) vertical[y] = ((y + 0.5) / height * 2 - 1) ** 2;
-
-      for (let y = 0, offset = 0; y < height; y += 1) {
-        for (let x = 0; x < width; x += 1, offset += 4) {
-          const originalR = data[offset];
-          const originalG = data[offset + 1];
-          const originalB = data[offset + 2];
-          // Preserve fully transparent pixels as well as their alpha.
-          if (data[offset + 3] === 0) continue;
-          let r;
-          let g;
-          let b;
-          if (recipe.legacy) {
-            legacyColor(id, originalR, originalG, originalB, color);
-            r = color[0];
-            g = color[1];
-            b = color[2];
-          } else {
-            if (recipe.monochrome) {
-              const gray = (0.2126 * originalR + 0.7152 * originalG + 0.0722 * originalB + 0.5) | 0;
-              r = recipe.table[gray];
-              g = r;
-              b = r;
-            } else {
-              r = recipe.table[originalR];
-              g = recipe.table[originalG];
-              b = recipe.table[originalB];
-            }
-            const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-            const highlightWeight = (luminance / 255) ** 2;
-            const shadowWeight = (1 - luminance / 255) ** 2;
-            r = luminance + (r - luminance) * recipe.saturation
-              + recipe.tint[0] + recipe.shadow[0] * shadowWeight + recipe.highlight[0] * highlightWeight;
-            g = luminance + (g - luminance) * recipe.saturation
-              + recipe.tint[1] + recipe.shadow[1] * shadowWeight + recipe.highlight[1] * highlightWeight;
-            b = luminance + (b - luminance) * recipe.saturation
-              + recipe.tint[2] + recipe.shadow[2] * shadowWeight + recipe.highlight[2] * highlightWeight;
-          }
-
-          // Xorshift32 gives stable luminance grain without storing a noise image.
-          randomState ^= randomState << 13;
-          randomState ^= randomState >>> 17;
-          randomState ^= randomState << 5;
-          const luminance = clamp((r + g + b) / 3) / 255;
-          const noise = ((randomState >>> 0) / 4294967296 - 0.5) * recipe.grain * (1 - luminance * 0.7);
-          const distance = (horizontal[x] + vertical[y] - 0.18) / 1.82;
-          const radius = distance > 0 ? distance : 0;
-          const edge = 1 - recipe.vignette * radius * radius;
-          r = clamp((r + noise) * edge);
-          g = clamp((g + noise) * edge);
-          b = clamp((b + noise) * edge);
-
-          data[offset] = originalR + (r - originalR) * strength;
-          data[offset + 1] = originalG + (g - originalG) * strength;
-          data[offset + 2] = originalB + (b - originalB) * strength;
-        }
-      }
-      context.putImageData(imageData, 0, 0);
-    } finally {
-      context.restore();
-    }
+      const image = context.getImageData(0, 0, width, height);
+      renderFilm(image.data, width, height, recipes[id], id, strength,
+        ((Number(options.seed ?? 1) >>> 0) ^ hashString(id)) >>> 0, optionsFor(options));
+      context.putImageData(image, 0, 0);
+    } finally { context.restore(); }
   }
-
-  global.VintageFilters = Object.freeze({ presets, render });
+  global.VintageFilters = Object.freeze({ presets, render, getCapabilities, version: 2 });
 })(window);
