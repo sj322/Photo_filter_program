@@ -2,9 +2,9 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Vintage Cam · 감성 필터 카메라</title>
-<meta name="description" content="빈티지 필름 필터를 제공하는 클라이언트 전용 사진 편집 웹앱">
+<meta name="description" content="90년대 가족앨범, 바랜 인화사진, 필름과 레트로 디카까지. 32가지 색감과 아날로그 질감을 기기 안에서 만나보세요.">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,7 +13,9 @@
     <!-- 상단 헤더 -->
     <header class="topbar">
       <span class="logo">✨ Vintage Cam</span>
+      <span class="header-note">a little nostalgia.</span>
     </header>
+    <p id="statusMessage" class="status-message" role="status" aria-live="polite" hidden></p>
 
     <!-- 캔버스 편집 영역 -->
     <main class="editor">
@@ -21,25 +23,50 @@
 
         <!-- 실제 이미지 처리가 일어나는 캔버스. 이미지 업로드 전에는 숨겨서
              기본 캔버스 크기(300x150)가 안내 문구 레이아웃을 밀어내지 않게 한다 -->
-        <canvas id="mainCanvas" hidden></canvas>
+        <canvas id="mainCanvas" aria-label="선택한 사진 미리보기" hidden></canvas>
+        <span class="image-info" id="imageInfo" hidden></span>
 
         <!-- 이미지 업로드 전 안내 화면 -->
         <div class="placeholder" id="placeholder">
           <div class="placeholder-icon">📷</div>
-          <p>사진을 선택하고<br>감성 필터를 적용해보세요</p>
+          <span class="eyebrow">90s · VINTAGE · FILM</span>
+          <h1>오늘의 사진에<br>조금의 옛날을.</h1>
+          <p>90년대 가족앨범부터 바랜 필름까지.<br><span id="lookCount">32</span>가지 색감으로 오래된 순간을 만들어보세요.</p>
           <button id="uploadBtn" class="primary-btn" type="button">사진 선택하기</button>
+          <span class="privacy-note">사진은 기기 안에서만 처리돼요</span>
         </div>
       </div>
     </main>
 
     <!-- 하단 필터 / 액션 바 -->
     <footer class="controls" id="controls" hidden>
-      <div class="filter-row" id="filterRow">
-        <button class="filter-btn active" data-filter="original" type="button">원본</button>
-        <button class="filter-btn" data-filter="clarendon" type="button">🔆 클라렌던</button>
-        <button class="filter-btn" data-filter="gingham" type="button">🌸 깅엄</button>
-        <button class="filter-btn" data-filter="lark" type="button">🌤️ 라크</button>
-        <button class="filter-btn" data-filter="moon" type="button">🌙 문</button>
+      <div class="filter-heading">
+        <div class="filter-title-group">
+          <span class="eyebrow">SELECT YOUR MOOD</span>
+          <h2 id="filterName">원본</h2>
+        </div>
+        <span id="filterCount">32 LOOKS</span>
+      </div>
+      <p id="filterDescription" class="filter-description" aria-live="polite">사진 본연의 색감</p>
+      <div class="category-row" id="categoryRow" role="group" aria-label="필터 종류">
+        <button class="category-btn active" data-category="all" aria-pressed="true" type="button">전체</button>
+        <button class="category-btn" data-category="nineties" aria-pressed="false" type="button">90년대</button>
+        <button class="category-btn" data-category="vintage" aria-pressed="false" type="button">빈티지</button>
+        <button class="category-btn" data-category="retro" aria-pressed="false" type="button">레트로</button>
+        <button class="category-btn" data-category="film" aria-pressed="false" type="button">필름</button>
+        <button class="category-btn" data-category="digital" aria-pressed="false" type="button">디카</button>
+        <button class="category-btn" data-category="cinema" aria-pressed="false" type="button">시네마</button>
+        <button class="category-btn" data-category="mono" aria-pressed="false" type="button">흑백</button>
+        <button class="category-btn" data-category="classic" aria-pressed="false" type="button">기존 필터</button>
+      </div>
+      <div class="filter-row" id="filterRow" role="group" aria-label="사진 필터"></div>
+      <div class="adjustments">
+        <div class="strength-control">
+          <label for="strengthInput">필터 강도</label>
+          <output id="strengthValue" for="strengthInput">80%</output>
+        </div>
+        <input id="strengthInput" type="range" min="0" max="100" step="1" value="80" disabled>
+        <button id="compareBtn" class="compare-btn" type="button" aria-pressed="false" disabled>원본 비교</button>
       </div>
       <div class="action-row">
         <button id="changeImageBtn" class="ghost-btn" type="button">다른 사진</button>
@@ -49,8 +76,10 @@
 
     <!-- 실제 파일 선택은 숨겨진 input이 담당 -->
     <input type="file" id="fileInput" accept="image/*" hidden>
+    <noscript>사진 필터를 사용하려면 브라우저에서 JavaScript를 켜주세요.</noscript>
   </div>
 
+  <script src="filters.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

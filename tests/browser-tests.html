@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vintage Cam · 브라우저 회귀 테스트</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #101014; color: #eeeaf0; font-family: system-ui, sans-serif; }
+    main { max-width: 1280px; margin: auto; padding: 24px; }
+    h1 { margin: 0 0 8px; font-size: 24px; }
+    p { color: #bbb4c2; line-height: 1.6; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 410px; gap: 24px; align-items: start; }
+    #summary { padding: 15px 18px; border: 1px solid #4a4250; border-radius: 10px; background: #211d28; font-weight: 700; }
+    #summary.pass { border-color: #518a65; background: #163521; }
+    #summary.fail { border-color: #c86868; background: #412323; }
+    ol { padding-left: 0; list-style: none; }
+    li { margin: 8px 0; padding: 12px; border-radius: 8px; background: #1c1b22; font-size: 13px; }
+    .label { display: inline-block; min-width: 46px; font-weight: 750; }
+    li.pass .label { color: #9de9b4; }
+    li.fail .label { color: #ff9f9f; }
+    .detail { margin: 6px 0 0 46px; color: #aaa1b5; font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+    li.fail .detail { color: #ffbaba; }
+    .preview { overflow: auto; padding: 10px; border: 1px solid #403846; border-radius: 14px; background: #08080a; }
+    iframe { display: block; width: 390px; height: 844px; margin: 0 auto; border: 0; background: #080809; }
+    .preview-note { margin: 10px 0 0; font-size: 12px; }
+    #failures { white-space: pre-wrap; color: #ffbaba; overflow-wrap: anywhere; }
+    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } .preview { width: fit-content; max-width: 100%; } }
+    @media (max-width: 440px) { main { padding: 14px; } .preview { width: 100%; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Vintage Cam 브라우저 회귀 테스트</h1>
+    <p>실제 앱의 파일 선택, 필터, 강도, 원본 비교, 저장 결과와 작은 화면 배치를 검사합니다. 외부 라이브러리 없이 실행됩니다.</p>
+    <div class="layout">
+      <section aria-label="테스트 결과">
+        <div id="summary" role="status" aria-live="polite">앱을 불러오는 중…</div>
+        <ol id="results"></ol>
+        <pre id="failures" hidden></pre>
+      </section>
+      <section aria-label="실제 앱 미리보기">
+        <div class="preview"><iframe id="appFrame" src="../index.html" title="Vintage Cam 실제 앱" width="390" height="844"></iframe></div>
+        <p class="preview-note" id="previewNote">테스트가 끝나면 골드 200 · 강도 80% 미리보기를 표시합니다.</p>
+      </section>
+    </div>
+  </main>
+  <script src="browser-tests.js"></script>
+</body>
+</html>
